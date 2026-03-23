@@ -1,0 +1,30 @@
+//@version=5
+indicator("NQ1! FVG Alerts", overlay=true)
+
+// Discord webhook URL
+var string webhookUrl = "YOUR_DISCORD_WEBHOOK_URL"
+
+// Define function to send webhook
+sendWebhook(content) => 
+    var request = http.new_request()
+    request.set_method("POST")
+    request.set_url(webhookUrl)
+    request.set_header("Content-Type", "application/json")
+    request.set_body('{"content": "' + content + '"}')
+    http.send_request(request)
+
+// Calculate fair value gap
+var float gapHigh = na
+var float gapLow = na
+
+if (close[1] < open[1])
+    gapHigh := high[1]
+    gapLow := low[1]
+    box.new(bar_index[1], gapLow, bar_index, gapHigh, border_color=color.red, bgcolor=color.new(color.red, 90))
+
+// Alert condition
+if (close == gapLow)
+    sendWebhook("NQ1 approaching FVG gap at " + str.tostring(gapLow))
+
+// Plot gap
+plotshape(series=close == gapLow, location=location.belowbar, color=color.red, style=shape.labeldown, title="FVG Alert"  , text="FVG")
